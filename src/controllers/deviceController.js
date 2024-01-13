@@ -134,24 +134,6 @@ const deviceController = {
             .catch(error => res.status(500).json(error))
 
     },
-    showByDerpartment:async(req, res) => {
-        Promise.all([Devices.find({department:req.params.id}), Location.find({}), Category.find({}), Maintenance.find({}), RepairHis.find({}), Repairer.find({}), User.find({})])
-            .then(([devices, locations, categories, maintenances, repairerhises, repairers, user]) => {
-                const data = {
-                    divices: devices.length,
-                    locations: locations.length,
-                    categories: categories.length,
-                    maintenances: maintenances.length,
-                    repairerhises: repairerhises.length,
-                    repairers: repairers.length,
-                    user: user.length
-                };
-                res.json(data);
-            })
-            .catch((error) => {
-                res.status(500).json({ error: 'Internal Server Error' });
-            });
-    },
     create: async (req, res) => {
         try {
             
