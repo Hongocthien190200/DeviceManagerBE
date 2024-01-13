@@ -10,6 +10,7 @@ const authController = {
             const alluser = await User.find({});
             const dataUser = alluser.map((user) => {
                 return {
+                    id: user._id,
                     username: user.username,
                     fullname: user.fullname,
                     email: user.email,
@@ -27,7 +28,7 @@ const authController = {
             const hashed = await bcrypt.hash(req.body.password, salt);
 
             //Create User
-            const newUser = await new User({
+            const newUser = new User({
                 username: req.body.username,
                 fullname: req.body.fullname,
                 email: req.body.email,
@@ -41,7 +42,44 @@ const authController = {
             res.status(500).json("Tên tài khoản đã tồn tại");
         }
     },
-    //generate access token
+    //UPdate PASSWORD
+    changePassword: async (req, res) => {
+        try {
+            const newPassword = req.body.passWord;
+            // Tìm người dùng trong database
+            const user = await User.findById(req.body.id);
+
+            // Tạo mật khẩu mới và lưu vào database
+            const salt = await bcrypt.genSalt(10);
+            const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+            user.password = hashedNewPassword;
+            await user.save();
+
+            res.status(200).json("Đổi mật khẩu thành công");
+        } catch (error) {
+            res.status(500).json(error);
+        }
+    },
+    //DELETE User
+    deleteUser: async (req, res) => {
+        try {
+            const userId = req.params.id;
+
+            // Kiểm tra xem người dùng có tồn tại và có phải là người dùng không phải admin không
+            const userToDelete = await User.findById(userId);
+            if (!userToDelete || userToDelete.admin) {
+                return res.status(404).json("Người dùng không tồn tại hoặc không thể xóa.");
+            }
+            // Xóa người dùng
+            await User.findByIdAndDelete(userId);
+
+            res.status(200).json("Xóa người dùng thành công");
+        } catch (error) {
+            res.status(500).json(error);
+        }
+    },
+
+    //ge,nerate access token
     generateAccessToken: (user) => {
         return jwt.sign({
             id: user.id,
@@ -80,7 +118,7 @@ const authController = {
                 const newSchedule = await new Schedule({
                     userName: user.username,
                     id: user._id,
-                    loginInfo:{
+                    loginInfo: {
                         location: req.body.userLocation,
                         timestamp: new Date(Date.now() + 7 * 60 * 60 * 1000),
                     }

@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 const Devices = require('../Models/devices');
 const User = require('../Models/User');
 function startCron() {
-    const specificTime = '04 16 * * *'; // 
+    const specificTime = '00 07 * * *'; // 
     const specificJob = new CronJob(specificTime, async () => {
         try {
             const devices = await Devices.find({
@@ -29,7 +29,6 @@ function startCron() {
             }
 
             if (devicesDueForMaintenance.length > 0) {
-                const email = "hn.thien190200@gmail.com"; // Địa chỉ email người dùng
                 const transporter = nodemailer.createTransport({
                     host: "smtp.gmail.com",
                     port: "587",
@@ -126,13 +125,17 @@ function startCron() {
                 };
 
                 try {
-                    if (email) {
+                    const users = await User.find({}); // Lấy tất cả người dùng
+                    for (const user of users) {
+                        mailOptions.to = user.email; // Đặt địa chỉ email người dùng
                         await transporter.sendMail(mailOptions);
-                        await Devices.updateMany(
-                            { _id: { $in: devicesToUpdate.map((device) => device._id) } },
-                            { $set: { maintenanceStatus: true } }
-                        );
                     }
+
+                    // Cập nhật trạng thái bảo dưỡng của thiết bị
+                    await Devices.updateMany(
+                        { _id: { $in: devicesToUpdate.map((device) => device._id) } },
+                        { $set: { maintenanceStatus: true } }
+                    );
                 } catch (error) {
                     console.log(error);
                 }

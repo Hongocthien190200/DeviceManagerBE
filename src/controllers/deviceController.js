@@ -41,7 +41,6 @@ const deviceController = {
                     else {
                         department = "";
                     }
-
                     return {
                         id: device._id,
                         deviceName: device.deviceName,
@@ -71,7 +70,10 @@ const deviceController = {
                 })
                 res.status(200).json(listDevices)
             })
-            .catch(error => res.status(500).json(error))
+            .catch((error) =>{
+                console.log(error)
+                res.status(500).json(error)
+            })
 
     },
     showById: async (req, res) => {
@@ -132,7 +134,24 @@ const deviceController = {
             .catch(error => res.status(500).json(error))
 
     },
-
+    showByDerpartment:async(req, res) => {
+        Promise.all([Devices.find({department:req.params.id}), Location.find({}), Category.find({}), Maintenance.find({}), RepairHis.find({}), Repairer.find({}), User.find({})])
+            .then(([devices, locations, categories, maintenances, repairerhises, repairers, user]) => {
+                const data = {
+                    divices: devices.length,
+                    locations: locations.length,
+                    categories: categories.length,
+                    maintenances: maintenances.length,
+                    repairerhises: repairerhises.length,
+                    repairers: repairers.length,
+                    user: user.length
+                };
+                res.json(data);
+            })
+            .catch((error) => {
+                res.status(500).json({ error: 'Internal Server Error' });
+            });
+    },
     create: async (req, res) => {
         try {
             
@@ -145,6 +164,7 @@ const deviceController = {
                 const formattedNextMaintenanceDate = format(nextMaintenanceDate, 'yyyy-MM-dd',{ timeZone: 'Asia/Ho_Chi_Minh' }); //định dạng ngày bảo dưỡng tiếp theo
                 newDevice = new Devices({
                     deviceName: req.body.deviceName, //tên thiết bị
+                    quantity: req.body.quantity,
                     deviceCode: req.body.deviceCode, //mã thiết bị
                     deviceImg: req.body.deviceImg, //hình ảnh
                     maintenanceSchedule: req.body.maintenanceSchedule, //lịch bảo dưỡng

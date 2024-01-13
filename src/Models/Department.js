@@ -6,7 +6,7 @@ const DepartmenSchema = new Schema({
         type:String,
         required:true,
         unique:true,
-    }
+    },
 });
 
 module.exports = mongoose.model('Departmen', DepartmenSchema);
